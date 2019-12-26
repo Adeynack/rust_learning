@@ -1,5 +1,6 @@
 use std::thread;
 use std::time::Duration;
+use std::marker::PhantomData;
 
 fn main() {
     let simulated_user_specified_value = 10;
@@ -11,24 +12,28 @@ fn main() {
     );
 }
 
-struct Cacher<TFn>
-    where TFn: Fn(u32) -> u32
+struct Cacher<TFn, TIn, TOut>
+    where TFn: Fn(TIn) -> TOut,
+          TOut: Copy,
 {
     calculation: TFn,
-    value: Option<u32>,
+    value: Option<TOut>,
+    phantom: PhantomData<TIn>,
 }
 
-impl<TFn> Cacher<TFn>
-    where TFn: Fn(u32) -> u32
+impl<TFn, TIn, TOut> Cacher<TFn, TIn, TOut>
+    where TFn: Fn(TIn) -> TOut,
+          TOut: Copy,
 {
-    fn new(calculation: TFn) -> Cacher<TFn> {
+    fn new(calculation: TFn) -> Cacher<TFn, TIn, TOut> {
         Cacher {
             calculation,
             value: None,
+            phantom: PhantomData
         }
     }
 
-    fn value(&mut self, arg: u32) -> u32 {
+    fn value(&mut self, arg: TIn) -> TOut {
         match self.value {
             Some(v) => v,
             None => {
@@ -39,35 +44,6 @@ impl<TFn> Cacher<TFn>
         }
     }
 }
-
-//struct Cacher<TFn, TIn, TOut>
-//    where TFn: Fn(TIn) -> TOut
-//{
-//    calculation: TFn,
-//    value: Option<TOut>,
-//}
-//
-//impl<TFn, TIn, TOut> Cacher<TFn, TIn, TOut>
-//    where TFn: Fn(TIn) -> TOut
-//{
-//    fn new(calculation: TFn) -> Cacher<TFn, TIn, TOut> {
-//        Cacher {
-//            calculation,
-//            value: None,
-//        }
-//    }
-//
-//    fn value(&mut self, arg: TIn) -> TOut {
-//        match self.value {
-//            Some(v) => v,
-//            None => {
-//                let v = (self.calculation)(arg);
-//                self.value = Some(v);
-//                v
-//            }
-//        }
-//    }
-//}
 
 fn generate_workout(intensity: u32, random_number: u32) {
     let mut expensive_result = Cacher::new(|num| {
@@ -87,17 +63,17 @@ fn generate_workout(intensity: u32, random_number: u32) {
     }
 }
 
-//#[cfg(test)]
-//mod tests {
-//    use super::*;
-//
-//    #[test]
-//    fn call_with_different_values() {
-//        let mut c = Cacher::new(|a| a);
-//
-//        let _v1 = c.value(1);
-//        let v2 = c.value(2);
-//
-//        assert_eq!(v2, 2);
-//    }
-//}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn call_with_different_values() {
+        let mut c = Cacher::new(|a| a);
+
+        let _v1 = c.value(1);
+        let v2 = c.value(2);
+
+        assert_eq!(v2.clone(), 2);
+    }
+}

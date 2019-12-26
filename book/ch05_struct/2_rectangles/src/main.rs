@@ -39,7 +39,7 @@ fn main() {
     println!("The rectangle is {:?}", rect2);
     println!("The rectangle is {:#?}", rect2);
 }
-c
+
 fn area_with_2_parameterss(width: u32, height: u32) -> u32 {
     width * height
 }
