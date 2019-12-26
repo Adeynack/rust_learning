@@ -1,6 +1,7 @@
+use std::collections::HashMap;
+use std::marker::PhantomData;
 use std::thread;
 use std::time::Duration;
-use std::marker::PhantomData;
 
 fn main() {
     let simulated_user_specified_value = 10;
@@ -14,31 +15,37 @@ fn main() {
 
 struct Cacher<TFn, TIn, TOut>
     where TFn: Fn(TIn) -> TOut,
+          TIn: std::cmp::Eq,
+          TIn: std::hash::Hash,
+          TIn: Copy,
           TOut: Copy,
 {
     calculation: TFn,
-    value: Option<TOut>,
+    values: HashMap<TIn, TOut>,
     phantom: PhantomData<TIn>,
 }
 
 impl<TFn, TIn, TOut> Cacher<TFn, TIn, TOut>
     where TFn: Fn(TIn) -> TOut,
+          TIn: std::cmp::Eq,
+          TIn: std::hash::Hash,
+          TIn: Copy,
           TOut: Copy,
 {
     fn new(calculation: TFn) -> Cacher<TFn, TIn, TOut> {
         Cacher {
             calculation,
-            value: None,
-            phantom: PhantomData
+            values: HashMap::new(),
+            phantom: PhantomData,
         }
     }
 
     fn value(&mut self, arg: TIn) -> TOut {
-        match self.value {
-            Some(v) => v,
+        match self.values.get(&arg) {
+            Some(v) => *v,
             None => {
                 let v = (self.calculation)(arg);
-                self.value = Some(v);
+                self.values.insert(arg, v);
                 v
             }
         }
