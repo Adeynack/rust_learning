@@ -1,14 +1,13 @@
-use oo_design_pattern::Post;
+use oo_design_pattern::{Post, PendingReviewPost, DraftPost};
 
 fn main() {
-    let mut post = Post::new();
+    let mut post: DraftPost = Post::new();
 
     post.add_text("I ate a salad for lunch today");
-    assert_eq!("", post.content());
 
-    post.request_review();
-    assert_eq!("", post.content());
+    let post: PendingReviewPost = post.request_review();
 
-    post.approve();
+    let post: Post = post.approve();
+
     assert_eq!("I ate a salad for lunch today", post.content());
 }
