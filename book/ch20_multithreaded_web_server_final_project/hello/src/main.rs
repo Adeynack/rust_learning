@@ -4,7 +4,7 @@ use std::net::{TcpListener, TcpStream};
 use std::time::Duration;
 use hello::ThreadPool;
 
-const LOG_ALL: bool = true;
+const LOG_ALL: bool = false;
 const LOG_REQUESTS: bool = LOG_ALL || false;
 const LOG_RESPONSES: bool = LOG_ALL || false;
 
@@ -35,7 +35,7 @@ fn handle_connection(mut stream: TcpStream) {
     let (status_line, filename) = if buffer.starts_with(get) {
         ("HTTP/1.1 200 OK", "hello.html")
     } else if buffer.starts_with(sleep) {
-        thread::sleep(Duration::from_secs(2));
+        thread::sleep(Duration::from_millis(100));
         ("HTTP/1.1 200 OK", "hello.html")
     } else {
         ("HTTP/1.1 404 NOT FOUND", "404.html")
